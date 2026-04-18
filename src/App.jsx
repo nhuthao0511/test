@@ -1,53 +1,70 @@
 import React, { useState, useEffect } from 'react';
 
-function Dashboard() {
+function App() {
   const [data, setData] = useState([]);
+  const [error, setError] = useState(null);
 
-  // Replace this with your copied "Published as CSV" URL
-  const SHEET_URL = "https://docs.google.com/spreadsheets/d/11hk1vugEm39QpzhUnjmEmmo5nLKCcTy63P4bL1Fnyqo/edit?gid=953143334#gid=953143334";
-
-  const fetchSheetData = async () => {
-    try {
-      const response = await fetch(SHEET_URL);
-      const csvText = await response.text();
-      
-      // Parse CSV to JSON
-      const lines = csvText.split('\n');
-      const headers = lines[0].split(',');
-      const result = lines.slice(1).map(line => {
-        const columns = line.split(',');
-        return {
-          name: columns[0],    // Column A
-          service: columns[1], // Column B
-          status: columns[2]   // Column C
-        };
-      });
-
-      setData(result);
-    } catch (error) {
-      console.error("Error loading sheet data:", error);
-    }
-  };
+  // 1. Double-check this URL: It MUST end in output=csv
+  const SHEET_URL = "PASTE_YOUR_FULL_LINK_HERE";
 
   useEffect(() => {
-    fetchSheetData();
-    // Refresh data every 30 seconds for a real-time feel
-    const interval = setInterval(fetchSheetData, 30000);
-    return () => clearInterval(interval);
+    const fetchData = async () => {
+      try {
+        const response = await fetch(SHEET_URL);
+        if (!response.ok) throw new Error("Failed to fetch sheet");
+        
+        const csvText = await response.text();
+        const lines = csvText.split('\n');
+        
+        // 2. Add a check to filter out empty lines
+        const parsedData = lines.slice(1)
+          .filter(line => line.trim() !== "") 
+          .map(line => {
+            const columns = line.split(',');
+            return {
+              name: columns[0] || "No Name",
+              service: columns[1] || "N/A",
+              status: columns[2] || "N/A"
+            };
+          });
+
+        setData(parsedData);
+      } catch (err) {
+        console.error(err);
+        setError("Could not load data. Check your Google Sheet link!");
+      }
+    };
+
+    fetchData();
   }, []);
 
+  // 3. Prevent white screen by showing a message if it fails
+  if (error) return <div style={{color: 'red', padding: '20px'}}>{error}</div>;
+  if (data.length === 0) return <div style={{padding: '20px'}}>Loading dashboard data...</div>;
+
   return (
-    <div>
-      <h1>Real-time Business Dashboard</h1>
-      <ul>
-        {data.map((item, index) => (
-          <li key={index}>
-            {item.name} - {item.service} ({item.status})
-          </li>
-        ))}
-      </ul>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+      <h1>Business Dashboard</h1>
+      <table border="1" cellPadding="10" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead style={{ backgroundColor: '#eee' }}>
+          <tr>
+            <th>Client Name</th>
+            <th>Service</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((item, index) => (
+            <tr key={index}>
+              <td>{item.name}</td>
+              <td>{item.service}</td>
+              <td>{item.status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-export default Dashboard;
+export default App;
