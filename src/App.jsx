@@ -5,7 +5,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   // Replace this with your "Publish to Web" CSV URL
-  const SHEET_URL = "YOUR_GOOGLE_SHEET_CSV_URL_HERE";
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/11hk1vugEm39QpzhUnjmEmmo5nLKCcTy63P4bL1Fnyqo/edit?gid=953143334#gid=953143334";
 
   const fetchData = async () => {
     try {
