@@ -5,7 +5,7 @@ function App() {
   const [error, setError] = useState(null);
 
   // 1. Double-check this URL: It MUST end in output=csv
-  const SHEET_URL = "PASTE_YOUR_FULL_LINK_HERE";
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/11hk1vugEm39QpzhUnjmEmmo5nLKCcTy63P4bL1Fnyqo/edit?gid=953143334#gid=953143334";
 
   useEffect(() => {
     const fetchData = async () => {
