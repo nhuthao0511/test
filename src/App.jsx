@@ -1,80 +1,53 @@
 import React, { useState, useEffect } from 'react';
 
-function App() {
+function Dashboard() {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  // Replace this with your "Publish to Web" CSV URL
+  // Replace this with your copied "Published as CSV" URL
   const SHEET_URL = "https://docs.google.com/spreadsheets/d/11hk1vugEm39QpzhUnjmEmmo5nLKCcTy63P4bL1Fnyqo/edit?gid=953143334#gid=953143334";
 
-  const fetchData = async () => {
+  const fetchSheetData = async () => {
     try {
       const response = await fetch(SHEET_URL);
-      const reader = response.body.getReader();
-      const result = await reader.read();
-      const decoder = new TextDecoder('utf-8');
-      const csv = decoder.decode(result.value);
+      const csvText = await response.text();
       
-      // Basic CSV to JSON Parser
-      const lines = csv.split('\n');
-      const resultData = lines.slice(1).map(line => {
-        const [name, service, status] = line.split(',');
-        return { name, service, status };
+      // Parse CSV to JSON
+      const lines = csvText.split('\n');
+      const headers = lines[0].split(',');
+      const result = lines.slice(1).map(line => {
+        const columns = line.split(',');
+        return {
+          name: columns[0],    // Column A
+          service: columns[1], // Column B
+          status: columns[2]   // Column C
+        };
       });
 
-      setData(resultData);
-      setLoading(false);
+      setData(result);
     } catch (error) {
-      console.error("Error fetching sheet data:", error);
-      setLoading(false);
+      console.error("Error loading sheet data:", error);
     }
   };
 
-  // Poll for data every 30 seconds for "Real-time" feel
   useEffect(() => {
-    fetchData();
-    const interval = setInterval(fetchData, 30000); 
+    fetchSheetData();
+    // Refresh data every 30 seconds for a real-time feel
+    const interval = setInterval(fetchSheetData, 30000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1>Business Dashboard</h1>
-        <p>Real-time Google Sheets Sync</p>
-      </header>
-
-      {loading ? (
-        <p>Loading business data...</p>
-      ) : (
-        <div style={styles.grid}>
-          {data.map((item, index) => (
-            <div key={index} style={styles.card}>
-              <h3>{item.name}</h3>
-              <p><strong>Service:</strong> {item.service}</p>
-              <span style={styles.badge}>{item.status}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <div>
+      <h1>Real-time Business Dashboard</h1>
+      <ul>
+        {data.map((item, index) => (
+          <li key={index}>
+            {item.name} - {item.service} ({item.status})
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-      <span style={{
-        color: item.status === 'Paid' ? 'green' : 'red',
-        fontWeight: 'bold'
-      }}>
-        {item.status}
-      </span>
-
-// Basic CSS-in-JS Layout
-const styles = {
-  container: { padding: '20px', fontFamily: 'Arial, sans-serif', backgroundColor: '#f4f7f6', minHeight: '100vh' },
-  header: { borderBottom: '2px solid #333', marginBottom: '20px' },
-  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' },
-  card: { padding: '15px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
-  badge: { backgroundColor: '#e1f5fe', color: '#01579b', padding: '4px 8px', borderRadius: '4px', fontSize: '12px' }
-};
-
-export default App;
+export default Dashboard;
